@@ -1,6 +1,18 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{console, Window, Document, Element, HtmlElement};
+use std::rc::Rc;
+use std::cell::RefCell;
+
+
+#[wasm_bindgen]
+extern "C" {
+    fn requestAnimationFrame(callback: JsValue);
+
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
 
 // When the `wee_alloc` feature is enabled, this uses `wee_alloc` as the global
 // allocator.
@@ -10,57 +22,61 @@ use web_sys::{console, Window, Document, Element, HtmlElement};
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-
-
-struct Game;
-
-impl js_sys::Function for Game {
-
+fn window() -> web_sys::Window {
+    web_sys::window().expect("no global `window` exists")
 }
 
-// This is like the `main` function, except for JavaScript.
+
+fn document() -> web_sys::Document {
+    window()
+        .document()
+        .expect("should have a document on window")
+}
+
+fn body() -> web_sys::HtmlElement {
+    document().body().expect("document should have a body")
+}
+
+fn request_animation_frame(f: &Closure<dyn FnMut()>) {
+    window()
+        .request_animation_frame(f.as_ref().unchecked_ref())
+        .expect("should register `requestAnimationFrame` OK");
+}
+
+
 #[wasm_bindgen(start)]
-pub fn main_js() -> Result<(), JsValue> {
-    // This provides better error messages in debug mode.
-    // It's disabled in release mode so it doesn't bloat up the file size.
-    #[cfg(debug_assertions)]
-    console_error_panic_hook::set_once();
+pub fn run() -> Result<(), JsValue> {
 
+    init();
 
-    // Your code goes here!
-    console::log_1(&JsValue::from_str("Hi rust!"));
+    let f = Rc::new(RefCell::new(None));
+    let g = f.clone();
 
-    let window = web_sys::window().expect("Could not get window");
-    let document = window.document().expect("Could not get document");
-    let body = document.body().expect("Could not get body");
-    mount_canvas(&window, &document, &body);
+    *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+        render();
+        request_animation_frame(f.borrow().as_ref().unwrap());
+    }) as Box<dyn FnMut()>));
+
+    request_animation_frame(g.borrow().as_ref().unwrap());
     Ok(())
 }
 
 
-fn mount_canvas(window: &Window, document: &Document, body: &HtmlElement) {
-    let mut canvas = document.create_element("canvas").unwrap();
+fn init() {
+    let doc = document();
+    let mut canvas = doc.create_element("canvas").unwrap();
     canvas.set_attribute("width", "800px");
     canvas.set_attribute("height", "800px");
     canvas.set_id("fp-canvas");
-    body.append_child(&canvas).expect("Could not attach canvas");
-    window.set_timeout_with_callback_and_timeout_and_arguments_0(render, 3000);
-    start_game(&document);
+    body().append_child(&canvas).expect("Could not attach canvas");
 }
 
 fn render() {
-    console::log_1(&JsValue::from_str("Rendering"));
-}
-
-fn start_game(document: &Document) {
-    let canvas = document.get_element_by_id("fp-canvas").unwrap();
+    let canvas = document().get_element_by_id("fp-canvas").unwrap();
     let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>().unwrap();
     let context = canvas.get_context("2d").unwrap().unwrap().dyn_into::<web_sys::CanvasRenderingContext2d>().unwrap();
-
+    context.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
     context.begin_path();
     context.arc(95.0, 50.0, 40.0, 0.0, 2.0 * std::f64::consts::PI);
     context.stroke();
-    console::log_1(&context)
-
-
 }
