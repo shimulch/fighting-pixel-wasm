@@ -1,8 +1,11 @@
+extern crate js_sys;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{console, Window, Document, Element, HtmlElement};
 use std::rc::Rc;
 use std::cell::RefCell;
+use console_error_panic_hook;
+
 
 
 #[wasm_bindgen]
@@ -81,7 +84,7 @@ impl Game {
         self.clear();
 
         self.ctx.begin_path();
-        self.ctx.arc(state.x, 50.0, 40.0, 0.0, 2.0 * std::f64::consts::PI);
+        self.ctx.arc(state.x, 50.0, 40.0, 0.0, 2.0 * std::f64::consts::PI).unwrap();
         self.ctx.stroke();
         state.x += 1.0;
     }
@@ -93,7 +96,7 @@ impl Game {
 
 #[wasm_bindgen(start)]
 pub fn run() -> Result<(), JsValue> {
-
+    console_error_panic_hook::set_once();
     let mut game = init();
     let mut state = GameState::new();
 
@@ -112,15 +115,8 @@ pub fn run() -> Result<(), JsValue> {
 
 
 fn init() -> Game {
-    let doc = document();
-    let canvas = doc.create_element("canvas").unwrap();
-    canvas.set_attribute("width", "800px").unwrap();
-    canvas.set_attribute("height", "800px").unwrap();
-    canvas.set_id("fp-canvas");
-    body().append_child(&canvas).expect("Could not attach canvas");
-
     Game {
         ctx: context(),
-        canvas: canvas.dyn_into::<web_sys::HtmlCanvasElement>().unwrap()
+        canvas: canvas().dyn_into::<web_sys::HtmlCanvasElement>().unwrap()
     }
 }
