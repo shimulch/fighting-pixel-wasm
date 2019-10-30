@@ -6,6 +6,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use console_error_panic_hook;
 
+mod core;
 
 
 #[wasm_bindgen]
@@ -17,10 +18,6 @@ extern "C" {
 }
 
 
-// When the `wee_alloc` feature is enabled, this uses `wee_alloc` as the global
-// allocator.
-//
-// If you don't want to use `wee_alloc`, you can safely delete this.
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
@@ -34,10 +31,6 @@ fn document() -> web_sys::Document {
     window()
         .document()
         .expect("should have a document on window")
-}
-
-fn body() -> web_sys::HtmlElement {
-    document().body().expect("document should have a body")
 }
 
 fn canvas() -> web_sys::HtmlCanvasElement {
@@ -63,42 +56,12 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
         .expect("should register `requestAnimationFrame` OK");
 }
 
-struct GameState {
-    x: f64
-}
-
-impl GameState {
-    fn new() -> GameState {
-        GameState {
-            x: 3.0
-        }
-    }
-}
-struct Game {
-    canvas: web_sys::HtmlCanvasElement,
-    ctx: web_sys::CanvasRenderingContext2d
-}
-
-impl Game {
-    fn render(self: &Game, state: &mut GameState) {
-        self.clear();
-
-        self.ctx.begin_path();
-        self.ctx.arc(state.x, 50.0, 40.0, 0.0, 2.0 * std::f64::consts::PI).unwrap();
-        self.ctx.stroke();
-        state.x += 1.0;
-    }
-
-    fn clear(self: &Game) {
-        self.ctx.clear_rect(0.0, 0.0, self.canvas.width().into(), self.canvas.height().into())
-    }
-}
 
 #[wasm_bindgen(start)]
 pub fn run() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
-    let mut game = init();
-    let mut state = GameState::new();
+    let game = init();
+    let mut state = core::GameState::new();
 
     let f = Rc::new(RefCell::new(None));
     let g = f.clone();
@@ -114,9 +77,6 @@ pub fn run() -> Result<(), JsValue> {
 }
 
 
-fn init() -> Game {
-    Game {
-        ctx: context(),
-        canvas: canvas().dyn_into::<web_sys::HtmlCanvasElement>().unwrap()
-    }
+fn init() -> core::Game {
+    core::Game::new(context(), canvas().dyn_into::<web_sys::HtmlCanvasElement>().unwrap())
 }

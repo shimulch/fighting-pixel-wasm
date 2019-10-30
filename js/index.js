@@ -12,7 +12,7 @@ function ready(fn) {
 function setCanvasSize() {
     var canvasElem = document.getElementById('fp-canvas');
     canvasElem.setAttribute("width", window.innerWidth);
-    canvasElem.setAttribute("width", window.innerWidth);
+    canvasElem.setAttribute("height", window.innerHeight);
 }
 
 ready(function () {
