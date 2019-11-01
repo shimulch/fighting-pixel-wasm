@@ -7,15 +7,7 @@ use std::cell::RefCell;
 use console_error_panic_hook;
 
 mod core;
-
-
-#[wasm_bindgen]
-extern "C" {
-    fn requestAnimationFrame(callback: JsValue);
-
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
+mod environment;
 
 
 #[cfg(feature = "wee_alloc")]
@@ -60,7 +52,16 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
 #[wasm_bindgen(start)]
 pub fn run() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
-    let game = init();
+
+    let mut renderables: Vec<Box<dyn core::Render>> =  Vec::new();
+
+    environment::add_env_items(&mut renderables);
+
+    let game = core::Game::new(
+        context(),
+        canvas().dyn_into::<web_sys::HtmlCanvasElement>().unwrap()
+    );
+
     let mut state = core::GameState::new();
 
     let f = Rc::new(RefCell::new(None));
@@ -68,15 +69,10 @@ pub fn run() -> Result<(), JsValue> {
 
 
     *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-        game.render(&mut state);
+        game.render(&mut state, &mut renderables);
         request_animation_frame(f.borrow().as_ref().unwrap());
     }) as Box<dyn FnMut()>));
 
     request_animation_frame(g.borrow().as_ref().unwrap());
     Ok(())
-}
-
-
-fn init() -> core::Game {
-    core::Game::new(context(), canvas().dyn_into::<web_sys::HtmlCanvasElement>().unwrap())
 }
