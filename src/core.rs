@@ -1,7 +1,6 @@
 extern crate js_sys;
 use wasm_bindgen::prelude::*;
-use web_sys::{Window, HtmlCanvasElement, CanvasRenderingContext2d};
-use wasm_bindgen::JsCast;
+use web_sys::{window, HtmlCanvasElement, CanvasRenderingContext2d};
 
 #[wasm_bindgen]
 extern "C" {
@@ -16,42 +15,12 @@ pub fn js_log(s: &str) {
     log(s);
 }
 
-
-pub fn window() -> web_sys::Window {
-    web_sys::window().expect("no global `window` exists")
-}
-
-pub fn document() -> web_sys::Document {
-    window()
-        .document()
-        .expect("should have a document on window")
-}
-
-pub fn canvas() -> web_sys::HtmlCanvasElement {
-    document()
-        .get_element_by_id("fp-canvas")
-        .unwrap()
-        .dyn_into::<web_sys::HtmlCanvasElement>()
-        .unwrap()
-}
-
-pub fn context() -> web_sys::CanvasRenderingContext2d {
-    canvas()
-        .get_context("2d")
-        .unwrap()
-        .unwrap()
-        .dyn_into::<web_sys::CanvasRenderingContext2d>()
-        .unwrap()
-}
-
-pub fn request_animation_frame(f: &Closure<dyn FnMut()>) {
-    window()
-        .request_animation_frame(f.as_ref().unchecked_ref())
-        .expect("should register `requestAnimationFrame` OK");
+pub fn window_width() -> f64 {
+    window().unwrap().inner_width().unwrap().as_f64().unwrap()
 }
 
 pub trait Render {
-    fn render(&self, ctx: &CanvasRenderingContext2d, state: &mut GameState);
+    fn render(&mut self, ctx: &CanvasRenderingContext2d, state: &mut GameState);
 }
 
 pub struct GameState {

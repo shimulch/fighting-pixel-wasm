@@ -1,7 +1,6 @@
 extern crate js_sys;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{console, Window, Document, Element, HtmlElement};
 use std::rc::Rc;
 use std::cell::RefCell;
 use console_error_panic_hook;
