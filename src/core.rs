@@ -19,6 +19,10 @@ pub fn window_width() -> f64 {
     window().unwrap().inner_width().unwrap().as_f64().unwrap()
 }
 
+pub fn window_height() -> f64 {
+    window().unwrap().inner_height().unwrap().as_f64().unwrap()
+}
+
 pub trait Render {
     fn render(&mut self, ctx: &CanvasRenderingContext2d, state: &mut GameState);
 }

@@ -1,12 +1,15 @@
 use wasm_bindgen::prelude::*;
 use web_sys::CanvasRenderingContext2d;
 use js_sys::Math;
-use crate::core::{Render, GameState, js_log, window_width};
+use crate::core::{Render, GameState, window_width, window_height};
+
 
 struct Sun;
 
 impl Render for Sun {
-    fn render(&mut self, ctx: &CanvasRenderingContext2d, state: &mut GameState) {
+
+    /// Renders how sun would show and animate
+    fn render(&mut self, ctx: &CanvasRenderingContext2d, _state: &mut GameState) {
         ctx.set_fill_style(&JsValue::from_str("#fbe35f"));
         ctx.begin_path();
         ctx.rect(50.0, 50.0, 100.0, 100.0);
@@ -19,6 +22,7 @@ impl Render for Sun {
     }
 }
 
+/// Represents a cloud
 struct Cloud {
     x: f64,
     y: f64,
@@ -26,6 +30,7 @@ struct Cloud {
 }
 
 impl Cloud {
+
     fn new() -> Cloud {
         Cloud {
             x: window_width() + Math::random() * 400.0 + 200.0,
@@ -34,6 +39,7 @@ impl Cloud {
         }
     }
 
+    /// Resets cloud position and velocity
     fn reset(&mut self) {
         self.x = window_width() + Math::random() * 400.0 + 200.0;
         self.y = Math::random() * 250.0 + 10.0;
@@ -43,7 +49,8 @@ impl Cloud {
 
 impl Render for Cloud {
 
-    fn render(&mut self, ctx: &CanvasRenderingContext2d, state: &mut GameState) {
+    /// Renders how cloud would show and animate
+    fn render(&mut self, ctx: &CanvasRenderingContext2d, _state: &mut GameState) {
 
         if self.x + 120.0 > 0.0 {
             self.x = self.x - self.velocity;
@@ -61,11 +68,13 @@ impl Render for Cloud {
     }
 }
 
+/// To control cloud behaviour
 struct CloudController {
     clouds: Vec<Box<Cloud>>
 }
 
 impl CloudController {
+
     fn new() -> CloudController {
         let mut clouds = Vec::new();
 
@@ -92,11 +101,33 @@ impl Render for CloudController {
     }
 }
 
+struct Ground;
+
+impl Render for Ground {
+    fn render(&mut self, ctx: &CanvasRenderingContext2d, state: &mut GameState) {
+        ctx.set_fill_style(&JsValue::from_str("#FFF"));
+        ctx.begin_path();
+        ctx.rect(0.0, window_height() - 150.0, window_width(), 150.0);
+        ctx.fill();
+
+        ctx.set_fill_style(&JsValue::from_str("#EEE"));
+        ctx.begin_path();
+        ctx.rect(0.0, window_height() - 160.0, window_width(), 11.0);
+        ctx.fill();
+    }
+}
+
+/// Adds environment objects to render stack
+/// # Args
+/// render_stack - a Vector of objects that can be rendered
 pub fn add_env_items(render_stack: &mut Vec<Box<dyn Render>>) -> &mut Vec<Box<dyn Render>> {
 
     let cloud_ctrl = CloudController::new();
 
+    render_stack.push(Box::new(Ground{}));
+
     render_stack.push(Box::new(Sun{}));
     render_stack.push(Box::new(cloud_ctrl));
+
     render_stack
 }
