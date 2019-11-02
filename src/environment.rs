@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use web_sys::CanvasRenderingContext2d;
 use js_sys::Math;
-use crate::core::{Render, GameState, window_width, window_height};
+use crate::core::{Render, Create, GameState, window_width, window_height, js_log, Controller};
 
 
 struct Sun;
@@ -29,15 +29,17 @@ struct Cloud {
     velocity: f64
 }
 
-impl Cloud {
-
-    fn new() -> Cloud {
+impl Create<Cloud> for Cloud {
+    fn create() -> Cloud {
         Cloud {
             x: window_width() + Math::random() * 400.0 + 200.0,
             y: Math::random() * 250.0 + 10.0,
             velocity: Math::random() * 2.0 + 0.2
         }
     }
+}
+
+impl Cloud {
 
     /// Resets cloud position and velocity
     fn reset(&mut self) {
@@ -68,38 +70,6 @@ impl Render for Cloud {
     }
 }
 
-/// To control cloud behaviour
-struct CloudController {
-    clouds: Vec<Box<Cloud>>
-}
-
-impl CloudController {
-
-    fn new() -> CloudController {
-        let mut clouds = Vec::new();
-
-        for _ in 1..5 {
-            clouds.push(
-                Box::new(
-                    Cloud::new()
-                )
-            );
-        }
-
-        CloudController {
-            clouds
-        }
-    }
-}
-
-impl Render for CloudController {
-
-    fn render(&mut self, ctx: &CanvasRenderingContext2d, state: &mut GameState) {
-        for cloud in &mut self.clouds {
-            cloud.render(ctx, state);
-        }
-    }
-}
 
 struct Ground;
 
@@ -117,17 +87,98 @@ impl Render for Ground {
     }
 }
 
+#[derive(Debug)]
+struct Mountain {
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+    velocity: f64,
+    color: String
+}
+
+impl Mountain {
+    fn update(&mut self) {
+        let right_edge_position = self.x + (self.width/2.0);
+        if right_edge_position < 0.0 {
+            self.width = Mountain::generate_width();
+            self.x = Mountain::generate_x(self.width);
+            self.color = Mountain::generate_color();
+            self.velocity = Math::random();
+        } else {
+            self.x = self.x - self.velocity;
+        }
+    }
+    fn generate_color() -> String {
+        let hill_colors = ["#8dc63f", "#9edb4c"];
+        let idx = Math::round(Math::random() * ((hill_colors.len() as f64) - 1.0)) as usize;
+        hill_colors[idx].to_string()
+    }
+
+    fn generate_width() -> f64 {
+        Math::random() * 800.0 + 400.0
+    }
+
+    fn generate_height() -> f64 {
+        Math::random() * 400.0
+    }
+    fn generate_x(width: f64) -> f64 {
+        (window_width() + width / 2.0) + (Math::random() * 400.0)
+    }
+
+}
+
+impl Create<Mountain> for Mountain {
+    fn create() -> Mountain {
+
+        let height = Mountain::generate_height();
+        let width = Mountain::generate_width();
+        Mountain{
+            x: Mountain::generate_x(width),
+            y: window_height() - height,
+            width,
+            height,
+            velocity: Math::random(),
+            color: Mountain::generate_color()
+        }
+    }
+}
+
+impl Render for Mountain {
+
+    fn render(&mut self, ctx: &CanvasRenderingContext2d, state: &mut GameState) {
+
+        js_log(&format!("{:?}", self));
+
+        ctx.set_fill_style(&JsValue::from_str(&self.color));
+        ctx.begin_path();
+        ctx.move_to(self.x, self.y);
+        ctx.line_to(self.x - self.width / 2.0, self.y + self.height);
+        ctx.line_to(self.x + self.width, self.y + self.height);
+        ctx.close_path();
+        ctx.fill();
+        self.update();
+    }
+}
+
+
 /// Adds environment objects to render stack
 /// # Args
 /// render_stack - a Vector of objects that can be rendered
 pub fn add_env_items(render_stack: &mut Vec<Box<dyn Render>>) -> &mut Vec<Box<dyn Render>> {
 
-    let cloud_ctrl = CloudController::new();
+//    let cloud_ctrl = CloudController::new();
+    let cloud_ctrl: Controller<Cloud> = Controller::new(5);
+    let mountain_ctrl: Controller<Mountain> = Controller::new(10);
 
-    render_stack.push(Box::new(Ground{}));
 
     render_stack.push(Box::new(Sun{}));
+
     render_stack.push(Box::new(cloud_ctrl));
+
+    render_stack.push(Box::new(mountain_ctrl));
+
+    render_stack.push(Box::new(Ground{}));
 
     render_stack
 }

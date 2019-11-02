@@ -27,6 +27,34 @@ pub trait Render {
     fn render(&mut self, ctx: &CanvasRenderingContext2d, state: &mut GameState);
 }
 
+pub trait Create<T> {
+    fn create() -> T;
+}
+
+pub struct Controller<T: Render + Create<T>> {
+    items: Vec<Box<T>>
+}
+
+impl<T: Render + Create<T>> Controller<T> {
+    pub fn new(count: i16) -> Controller<T> {
+        let mut items: Vec<Box<T>> = Vec::new();
+        for _ in 1..count {
+            items.push(Box::new(T::create()));
+        }
+        Controller {
+            items
+        }
+    }
+}
+
+impl<T: Render + Create<T>> Render for Controller<T> {
+    fn render(&mut self, ctx: &CanvasRenderingContext2d, state: & mut GameState) {
+        for item in &mut self.items {
+            item.render(ctx, state);
+        }
+    }
+}
+
 pub struct GameState {
     pub x: f64
 }
