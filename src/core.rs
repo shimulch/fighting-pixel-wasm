@@ -56,20 +56,27 @@ impl<T: Render + Create<T>> Render for Controller<T> {
 }
 
 pub struct GameState {
-    pub x: f64
+    pub left: bool,
+    pub right: bool,
+    pub up: bool,
+    pub down: bool
 }
 
 
 impl GameState {
     pub fn new() -> GameState {
         GameState {
-            x: 3.0
+            left: false,
+            right: false,
+            up: false,
+            down: false
         }
     }
 }
 pub struct Game {
     canvas: HtmlCanvasElement,
-    ctx: CanvasRenderingContext2d
+    ctx: CanvasRenderingContext2d,
+    state: GameState
 }
 
 impl Game {
@@ -77,23 +84,42 @@ impl Game {
     pub fn new(ctx: CanvasRenderingContext2d, canvas: HtmlCanvasElement) -> Game {
         Game {
             canvas,
-            ctx
+            ctx,
+            state: GameState::new()
         }
     }
 
-    pub fn render<'a>(self: &Game, state: &'a mut GameState, renderables: &mut Vec<Box<dyn Render>>) -> &'a mut GameState {
+    pub fn render<'a>(&mut self, renderables: &mut Vec<Box<dyn Render>>) {
         self.clear();
         self.ctx.set_fill_style(&JsValue::from_str("#bbedf9"));
         self.ctx.fill_rect(0.0, 0.0, self.canvas.width().into(), self.canvas.height().into());
 
         for renderable in renderables {
-            renderable.render(&self.ctx, state);
+            renderable.render(&self.ctx, &mut self.state);
         }
-
-        state
     }
 
-    fn clear(self: &Game) {
+    fn clear(&self) {
         self.ctx.clear_rect(0.0, 0.0, self.canvas.width().into(), self.canvas.height().into())
+    }
+
+    pub fn onkeyup(&mut self, key: u32) {
+        match key {
+            37 => self.state.left = false,
+            38 => self.state.up = false,
+            39 => self.state.right = false,
+            40 => self.state.down = false,
+            _ => {}
+        }
+    }
+
+    pub fn onkeydown(&mut self, key: u32) {
+        match key {
+            37 => self.state.left = true,
+            38 => self.state.up = true,
+            39 => self.state.right = true,
+            40 => self.state.down = true,
+            _ => {}
+        }
     }
 }

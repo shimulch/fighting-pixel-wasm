@@ -23,7 +23,7 @@ impl Create<Hero> for Hero {
             y: window_height() - 150.0,
             color: "#2980b9".to_string(),
             wheel_rotation: 1.0,
-            wheel_velocity: 1.0
+            wheel_velocity: 5.0
         }
     }
 }
@@ -31,6 +31,17 @@ impl Create<Hero> for Hero {
 impl Render for Hero {
 
     fn render(&mut self, ctx: &CanvasRenderingContext2d, state: &mut GameState) {
+
+        if state.right {
+            self.x += 5.0;
+            self.wheel_velocity = 10.0;
+        } else {
+            self.wheel_velocity = 5.0;
+        }
+
+        if state.left {
+            self.x -= 5.0;
+        }
 
         let body_start = Point {x: self.x, y: self.y};
         let body_next = Point {x: self.x + 20.0, y: self.y + 60.0};
@@ -50,6 +61,21 @@ impl Render for Hero {
             .fill(&self.color)
             .build();
 
+        let eye_wrapper_center = Point{x: head_start.x + 20.0, y: head_start.y - 5.0};
+        Shape::new(ctx)
+            .with_scale(0.8, 0.8, &eye_wrapper_center)
+            .triangle(&head_start, &head_next, &head_last)
+            .fill("#FFF")
+            .build();
+
+        let eye_center = Point{x: eye_wrapper_center.x + 10.0, y: eye_wrapper_center.y + 8.0};
+        Shape::new(ctx)
+            .with_scale(0.4, 0.4, &eye_center)
+            .triangle(&head_start, &head_next, &head_last)
+            .fill("#000")
+            .build();
+
+
 //
         let sides = 10.0;
         let size =20.0;
@@ -66,15 +92,17 @@ impl Render for Hero {
             .fill(&self.color)
             .build();
 
-        let wheel_right_center = Point{x: wheel_left_center.x + 54.0, y: wheel_left_center.y};
+        let wheel_right_center = Point{x: wheel_left_center.x + 50.0, y: wheel_left_center.y};
         Shape::new(ctx)
             .with_rotation(&wheel_right_center, self.wheel_rotation)
+            .with_scale(0.8, 0.8, &wheel_right_center)
             .draw_xgon(sides, size, &wheel_right_center)
             .stroke(&self.color, 2.0)
             .build();
 
         Shape::new(ctx)
             .with_rotation(&wheel_right_center, self.wheel_rotation)
+            .with_scale(0.8, 0.8, &wheel_right_center)
             .draw_xgon(sides, size-5.0, &wheel_right_center)
             .fill(&self.color)
             .build();

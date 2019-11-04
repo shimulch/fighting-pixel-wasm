@@ -29,6 +29,13 @@ impl<'b> Shape<'b> {
         self
     }
 
+    pub fn with_scale<'a>(&'a self, scale_x:f64, scale_y:f64, center: &Point) -> &'a Shape {
+        self.ctx.translate(center.x, center.y);
+        self.ctx.scale(scale_x, scale_y);
+        self.ctx.translate(-center.x, -center.y);
+        self
+    }
+
     pub fn triangle<'a>(&'a self, start: &Point, next: &Point, last: &Point) -> &'a Shape {
         self.ctx.move_to(start.x, start.y);
         self.ctx.line_to(next.x, next.y);
