@@ -1,0 +1,1 @@
+pub const FIRE_TEXT: &str = "ডিসিয়া...";

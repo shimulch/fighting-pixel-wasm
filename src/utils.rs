@@ -67,6 +67,21 @@ impl<'b> Shape<'b> {
         self
     }
 
+    pub fn stroke_text<'a>(&'a self, at: &Point, text: &str, color: &str, font: &str, stroke_width: f64) -> &'a Shape {
+        self.ctx.set_font(font);
+        self.ctx.set_stroke_style(&JsValue::from_str(color));
+        self.ctx.set_line_width(stroke_width);
+        self.ctx.stroke_text(text, at.x, at.y);
+        self
+    }
+
+    pub fn fill_text<'a>(&'a self, at: &Point, text: &str, color: &str, font: &str) -> &'a Shape {
+        self.ctx.set_font(font);
+        self.ctx.set_fill_style(&JsValue::from_str(color));
+        self.ctx.fill_text(text, at.x, at.y);
+        self
+    }
+
     pub fn build<'a>(&'a self) ->&'a Shape {
         self.ctx.restore();
         self

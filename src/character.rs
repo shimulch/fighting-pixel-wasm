@@ -4,7 +4,7 @@ use js_sys::Math;
 use std::f64::consts::PI;
 use crate::core::{Render, Create, GameState, window_width, window_height, js_log, Controller};
 use crate::utils::{Shape, Point};
-
+use crate::text::FIRE_TEXT;
 
 
 struct Hero {
@@ -31,6 +31,8 @@ impl Create<Hero> for Hero {
 impl Render for Hero {
 
     fn render(&mut self, ctx: &CanvasRenderingContext2d, state: &mut GameState) {
+        let text_point = Point{x: self.x + 50.0, y: self.y - 50.0};
+        Shape::new(ctx).fill_text(&text_point, FIRE_TEXT, &self.color, "1em 'Atma'").build();
 
         if state.right {
             self.x += 5.0;

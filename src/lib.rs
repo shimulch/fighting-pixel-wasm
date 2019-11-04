@@ -9,6 +9,7 @@ mod core;
 mod environment;
 mod character;
 mod utils;
+mod text;
 
 
 #[cfg(feature = "wee_alloc")]
