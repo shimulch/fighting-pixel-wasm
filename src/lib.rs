@@ -7,6 +7,8 @@ use console_error_panic_hook;
 
 mod core;
 mod environment;
+mod character;
+mod utils;
 
 
 #[cfg(feature = "wee_alloc")]
@@ -55,6 +57,7 @@ pub fn run() -> Result<(), JsValue> {
     let mut renderables: Vec<Box<dyn core::Render>> =  Vec::new();
 
     environment::add_env_items(&mut renderables);
+    character::add_characters(&mut renderables);
 
     let game = core::Game::new(
         context(),

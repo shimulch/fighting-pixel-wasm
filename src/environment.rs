@@ -120,7 +120,7 @@ impl Mountain {
     }
 
     fn generate_height() -> f64 {
-        Math::random() * 400.0
+        Math::random() * 400.0 + 150.0
     }
     fn generate_x(width: f64) -> f64 {
         (window_width() + width / 2.0) + (Math::random() * 400.0)
@@ -148,7 +148,7 @@ impl Render for Mountain {
 
     fn render(&mut self, ctx: &CanvasRenderingContext2d, state: &mut GameState) {
 
-        js_log(&format!("{:?}", self));
+//        js_log(&format!("{:?}", self));
 
         ctx.set_fill_style(&JsValue::from_str(&self.color));
         ctx.begin_path();
@@ -165,7 +165,7 @@ impl Render for Mountain {
 /// Adds environment objects to render stack
 /// # Args
 /// render_stack - a Vector of objects that can be rendered
-pub fn add_env_items(render_stack: &mut Vec<Box<dyn Render>>) -> &mut Vec<Box<dyn Render>> {
+pub fn add_env_items(render_stack: &mut Vec<Box<dyn Render>>) {
 
 //    let cloud_ctrl = CloudController::new();
     let cloud_ctrl: Controller<Cloud> = Controller::new(5);
@@ -179,6 +179,4 @@ pub fn add_env_items(render_stack: &mut Vec<Box<dyn Render>>) -> &mut Vec<Box<dy
     render_stack.push(Box::new(mountain_ctrl));
 
     render_stack.push(Box::new(Ground{}));
-
-    render_stack
 }
