@@ -48,6 +48,12 @@ impl<'b> Shape<'b> {
         self
     }
 
+    pub fn rect<'a>(&'a self, p: &Point, width: f64, height: f64) -> &'a Shape {
+        self.ctx.move_to(p.x, p.y);
+        self.ctx.rect(p.x, p.y, width, height);
+        self
+    }
+
     pub fn fill<'a>(&'a self, color: &str) -> &'a Shape {
         self.ctx.set_fill_style(&JsValue::from_str(color));
         self.ctx.fill();

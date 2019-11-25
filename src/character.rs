@@ -25,7 +25,7 @@ struct Character {
 
 impl Character {
 
-    fn create(direction:Direction, hero: bool) -> Character {
+    fn create(direction:Direction, color: String, hero: bool) -> Character {
 
         let x = match direction {
             Direction::Left => window_width() - 80.0,
@@ -36,7 +36,7 @@ impl Character {
         Character {
             x,
             y,
-            color: "#2980b9".to_string(),
+            color,
             direction,
             wheel_rotation: 1.0,
             wheel_velocity: 5.0,
@@ -170,6 +170,33 @@ impl Character {
                 .build();
         }
     }
+
+    fn render_gun(&mut self, ctx: &CanvasRenderingContext2d) {
+        let rect_p = match self.direction {
+            Direction::Right => Point { x: self.x + 32.0, y: self.y + 15.0 },
+            Direction::Left => Point { x: self.x - 12.0, y: self.y + 15.0 }
+        };
+        Shape::new(ctx)
+            .rect(&rect_p, 20.0, 10.0)
+            .fill(&self.color)
+            .build();
+
+        let nuzzle_p = match self.direction {
+            Direction::Right => Point { x: rect_p.x + 25.0, y: rect_p.y + 5.0 },
+            Direction::Left => Point { x: rect_p.x - 8.0, y: rect_p.y + 5.0 }
+        };
+        Shape::new(ctx)
+            .with_rotation(&nuzzle_p, self.wheel_rotation, false)
+            .draw_xgon(6.0, 10.0, &nuzzle_p)
+            .fill(&self.color)
+            .build();
+        Shape::new(ctx)
+            .with_scale(0.8, 0.8, &nuzzle_p)
+            .with_rotation(&nuzzle_p, self.wheel_rotation, true)
+            .draw_xgon(6.0, 10.0, &nuzzle_p)
+            .fill("#FFF")
+            .build();
+    }
 }
 
 impl Render for Character {
@@ -194,7 +221,7 @@ impl Render for Character {
         self.render_body(ctx, state);
         self.render_head(ctx, state);
         self.render_wheels(ctx, state);
-
+        self.render_gun(ctx);
 
         self.wheel_rotation = self.wheel_rotation + self.wheel_velocity;
         if self.wheel_rotation > 360.0 {
@@ -206,6 +233,6 @@ impl Render for Character {
 
 pub fn add_characters(render_stack: &mut Vec<Box<dyn Render>>) {
 
-    render_stack.push(Box::new(Character::create(Direction::Right, true)));
-    render_stack.push(Box::new(Character::create(Direction::Left, false)));
+    render_stack.push(Box::new(Character::create(Direction::Right, "#2980b9".to_string(), true)));
+    render_stack.push(Box::new(Character::create(Direction::Left, "#2980b9".to_string(),false)));
 }
