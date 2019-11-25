@@ -22,9 +22,13 @@ impl<'b> Shape<'b> {
         Shape{ctx}
     }
 
-    pub fn with_rotation<'a>(&'a self, center: &Point, deg: f64) -> &'a Shape {
+    pub fn with_rotation<'a>(&'a self, center: &Point, deg: f64, clockwise: bool) -> &'a Shape {
+        let rotation = match clockwise {
+            true => (PI / 180.0) * deg,
+            false => -1.0 * (PI / 180.0) * deg
+        };
         self.ctx.translate(center.x, center.y);
-        self.ctx.rotate((PI / 180.0) * deg);
+        self.ctx.rotate(rotation);
         self.ctx.translate(-center.x, -center.y);
         self
     }
